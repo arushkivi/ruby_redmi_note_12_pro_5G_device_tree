@@ -1,0 +1,17 @@
+Parsing boot image: [/Users/satvikpatil/Documents/untitled folder/backup/stock_boot_a.img]
+HEADER_VER      [2]
+KERNEL_SZ       [16713710]
+RAMDISK_SZ      [18292263]
+SECOND_SZ       [0]
+RECOV_DTBO_SZ   [0]
+DTB_SZ          [170180]
+OS_VERSION      [12.0.0]
+OS_PATCH_LEVEL  [2026-02]
+PAGESIZE        [2048]
+NAME            []
+CMDLINE         [bootopt=64S3,32N2,64N2 androidboot.tee_type=2 buildvariant=user]
+CHECKSUM        [0a6436b04b98139e534b09356207e4dfbd612950000000000000000000000000]
+KERNEL_FMT      [gzip]
+RAMDISK_FMT     [gzip]
+unexpected ASN.1 DER tag: expected SEQUENCE, got APPLICATION [1] (primitive)
+VBMETA

@@ -1,0 +1,46 @@
+#<src>                                                <mnt_point>  <type>  <mnt_flags and options>                                      <fs_mgr_flags>
+
+# System & Vendor
+system                                                /system      ext4    ro                                                           wait,slotselect,logical,first_stage_mount
+vendor                                                /vendor      ext4    ro                                                           wait,slotselect,logical,first_stage_mount
+product                                               /product     ext4    ro                                                           wait,slotselect,logical,first_stage_mount
+system_ext                                            /system_ext  ext4    ro                                                           wait,slotselect,logical,first_stage_mount
+mi_ext                                                /mi_ext      ext4    ro                                                           wait,slotselect,logical,first_stage_mount
+
+# Metadata & Userdata
+/dev/block/by-name/metadata                           /metadata    ext4    noatime,nosuid,nodev,discard                                 wait,check,formattable,first_stage_mount
+/dev/block/by-name/userdata                           /data        f2fs    noatime,nosuid,nodev,discard,inlinecrypt                     wait,check,formattable,quota,latemount,resize,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized+wrappedkey_v0,metadata_encryption=aes-256-xts:wrappedkey_v0,keydirectory=/metadata/vold/metadata_encryption
+
+# Physical Boot Partitions
+/dev/block/by-name/boot                               /boot        emmc    defaults                                                     slotselect
+/dev/block/by-name/vendor_boot                        /vendor_boot emmc    defaults                                                     slotselect
+/dev/block/by-name/dtbo                               /dtbo        emmc    defaults                                                     slotselect
+
+# VB Metas
+/dev/block/by-name/vbmeta                             /vbmeta      emmc    defaults                                                     slotselect
+/dev/block/by-name/vbmeta_system                      /vbmeta_system emmc  defaults                                                     slotselect
+/dev/block/by-name/vbmeta_vendor                      /vbmeta_vendor emmc  defaults                                                     slotselect
+
+# Security / Critical
+/dev/block/by-name/nvdata                             /nvdata      ext4    defaults                                                     defaults
+/dev/block/by-name/nvcfg                              /nvcfg       ext4    defaults                                                     defaults
+/dev/block/by-name/nvram                              /nvram       emmc    defaults                                                     defaults
+/dev/block/by-name/persist                            /persist     ext4    defaults                                                     defaults
+/dev/block/by-name/seccfg                             /seccfg      emmc    defaults                                                     defaults
+/dev/block/by-name/protect1                           /protect_f   ext4    defaults                                                     defaults
+/dev/block/by-name/protect2                           /protect_s   ext4    defaults                                                     defaults
+
+# Firmware
+/dev/block/by-name/md1img                             /md1img      emmc    defaults                                                     slotselect
+/dev/block/by-name/scp                                /scp         emmc    defaults                                                     slotselect
+/dev/block/by-name/sspm                               /sspm        emmc    defaults                                                     slotselect
+/dev/block/by-name/audio_dsp                          /audio_dsp   emmc    defaults                                                     slotselect
+/dev/block/by-name/cam_vpu1                           /cam_vpu1    emmc    defaults                                                     slotselect
+
+# Misc
+/dev/block/by-name/misc                               /misc        emmc    defaults                                                     defaults
+/dev/block/by-name/frp                                /frp         emmc    defaults                                                     defaults
+
+# Removable Storage
+/devices/platform/externdevice*                       auto         auto    defaults                                                     voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/mt_usb*                             auto         vfat    defaults                                                     voldmanaged=usbotg:auto

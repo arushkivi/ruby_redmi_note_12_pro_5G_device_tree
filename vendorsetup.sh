@@ -1,0 +1,43 @@
+add_lunch_combo twrp_ruby-eng
+add_lunch_combo twrp_ruby-userdebug
+
+export FOX_BUILD_DEVICE="ruby"
+export LC_ALL="C"
+export ALLOW_MISSING_DEPENDENCIES=true
+
+export FOX_AB_DEVICE=1
+export FOX_VIRTUAL_AB_DEVICE=1
+export OF_PATCH_AVB20=1
+export FOX_RECOVERY_SYSTEM_PARTITION="/system"
+export FOX_RECOVERY_VENDOR_PARTITION="/vendor"
+export FOX_RECOVERY_BOOT_PARTITION="/boot"
+
+export OFOX_USE_NANO_EDITOR=1
+export FOX_ENABLE_APP_MANAGER=1
+export FOX_USE_BASH_SHELL=1
+export FOX_ASH_IS_BASH=1
+export FOX_USE_TAR_BINARY=1
+export FOX_USE_SED_BINARY=1
+export FOX_USE_XZ_UTILS=1
+export FOX_USE_ZSTD_BINARY=1
+export OFOX_DISABLE_TIMEOUT=1
+
+export USE_CCACHE=1
+export CCACHE_EXEC=/usr/bin/ccache
+ccache -M 50G
+
+export OF_DEFAULT_KEYMASTER_VERSION="4.1"
+export FOX_MAINTAINER_PATCH_VERSION="1"
+
+export FOX_VERSION="R11.3_1"
+export OF_MAINTAINER="Satvik"
+export OF_SCREEN_H=2400
+export OF_STATUS_H=100
+export OF_STATUS_INDENT_LEFT=48
+export OF_STATUS_INDENT_RIGHT=48
+export OF_HIDE_NOTCH=1
+export OF_ALLOW_DISABLE_NAVBAR=0
+
+# Hardware overrides
+export OF_FORCE_PREBUILT_KERNEL=1
+export OF_USE_LZMA_COMPRESSION=1

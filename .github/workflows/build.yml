@@ -1,0 +1,140 @@
+name: Build OrangeFox (ruby)
+
+on:
+  workflow_dispatch:
+    inputs:
+      DEVICE_TREE:
+        description: "URL to your Device Tree repo (e.g., https://github.com/USERNAME/device_xiaomi_ruby)"
+        required: true
+        default: "https://github.com/USERNAME/device_xiaomi_ruby"
+        type: string
+      DEVICE_TREE_BRANCH:
+        description: "Device Tree Branch"
+        required: true
+        default: "main"
+        type: string
+      DEVICE_NAME:
+        description: "Device Codename (e.g., ruby)"
+        required: true
+        default: "ruby"
+        type: string
+      ORANGEFOX_BRANCH:
+        description: "OrangeFox Branch (Wait for 12.1 or 14.1)"
+        required: true
+        default: "fox_12.1"
+        type: string
+      BUILD_TARGET:
+        description: "Build Target (bootimage for VAB, recoveryimage for A-Only)"
+        required: true
+        default: "bootimage"
+        type: string
+
+jobs:
+  build:
+    name: Build OrangeFox - ${{ github.event.inputs.DEVICE_NAME }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Configure Disk Space (Aggressive Cleanup)
+        run: |
+          echo "Before cleanup:"
+          df -h
+
+          # Remove massive unused software toolsets
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/lib/node_modules
+
+          # Remove unused docker images
+          sudo docker image prune --all --force
+          sudo docker system prune --all --force --volumes
+
+          # Swap management
+          sudo swapoff -a
+          sudo rm -f /swapfile
+
+          echo "After cleanup:"
+          df -h
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y \
+            git python2 python3 curl bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev default-jre default-jdk
+
+          # Force Python 2 for older AOSP scripts
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
+
+          # Install Repo tool
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+
+      - name: Sync OrangeFox Source (Shallow Clone)
+        run: |
+          mkdir -p workspace
+          cd workspace
+
+          # Using depth=1 is crucial for GitHub actions to save time & disk space
+          ~/bin/repo init --depth=1 -u https://gitlab.com/OrangeFox/Manifest.git -b ${{ inputs.ORANGEFOX_BRANCH }}
+
+          # Sync with highest parallelization
+          ~/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+      - name: Clone Device Tree
+        run: |
+          cd workspace
+          git clone --depth=1 -b ${{ inputs.DEVICE_TREE_BRANCH }} ${{ inputs.DEVICE_TREE }} device/xiaomi/${{ inputs.DEVICE_NAME }}
+
+      - name: Set up CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          max-size: "10G"
+
+      - name: Build OrangeFox
+        run: |
+          cd workspace
+
+          # Output build log via tee for saving artifacts
+          (
+            export PATH=~/bin:$PATH
+            export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
+            export USE_CCACHE=1
+            export CCACHE_EXEC=/usr/bin/ccache
+            ccache -M 50G
+            
+            # Universal FOX flags explicitly built into this workflow
+            export LC_ALL="C"
+            export ALLOW_MISSING_DEPENDENCIES=true
+            export FOX_BUILD_DEVICE=${{ inputs.DEVICE_NAME }}
+            export FOX_AB_DEVICE=1
+            export FOX_VIRTUAL_AB_DEVICE=1
+            export OF_PATCH_AVB20=1
+            export OF_DEFAULT_KEYMASTER_VERSION=4.1
+            
+            source build/envsetup.sh
+            lunch twrp_${{ inputs.DEVICE_NAME }}-eng
+            mka adbd ${{ inputs.BUILD_TARGET }}
+          ) 2>&1 | tee build.log
+
+      - name: Upload Build Log (Always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build.log
+          path: workspace/build.log
+          retention-days: 7
+
+      - name: Upload OrangeFox Recovery Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeFox-Unofficial-${{ inputs.DEVICE_NAME }}
+          path: workspace/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox-*.img
+          retention-days: 7
+          if-no-files-found: error
