@@ -33,72 +33,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Maximize Disk Space (Aggressive)
+      - name: Free Up Disk Space
         run: |
           echo "Before cleanup:"
           df -h
-          # Remove large unnecessary packages
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/share/swift
           sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/lib/jvm
-          sudo rm -rf /usr/share/java
-          sudo rm -rf /opt/az
-          sudo rm -rf /opt/google
-          sudo rm -rf /opt/microsoft
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf /usr/local/grub
-          sudo rm -rf /usr/share/gradle*
-          sudo rm -rf /usr/local/lib/node_modules
-          sudo rm -rf /usr/share/man
-          # Remove docker images
-          docker rmi $(docker images -q) 2>/dev/null || true
-          # Remove apt cache
-          sudo apt-get remove -y \
-            '^dotnet-.*' \
-            '^llvm-.*' \
-            '^mysql-.*' \
-            'php.*' \
-            azure-cli \
-            google-cloud-sdk \
-            powershell \
-            mono-complete \
-            2>/dev/null || true
-          sudo apt-get autoremove -y
           sudo apt-get clean
           echo "After cleanup:"
           df -h
 
-      - name: Install Build Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
+          sudo apt-get install -y \
             git-core gnupg flex bison build-essential \
             zip curl zlib1g-dev libc6-dev-i386 \
-            libncurses5 libncurses5-dev x11proto-core-dev \
+            libncurses5 libncurses5-dev \
             libx11-dev lib32z1-dev libgl1-mesa-dev \
             libxml2-utils xsltproc unzip fontconfig \
-            python2 python-is-python2 python3 \
+            python2 python-is-python2 \
             libssl-dev bc lzop ccache \
-            schedtool squashfs-tools \
-            lzma liblzma-dev \
-            pngcrush imagemagick \
-            openjdk-11-jdk
+            schedtool squashfs-tools lzma
           sudo ln -sf /usr/bin/python2 /usr/bin/python
+          echo "Python version:"
           python --version
-          java -version
 
-      - name: Install repo tool
+      - name: Install repo
         run: |
           mkdir -p /home/runner/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > /home/runner/bin/repo
-          chmod a+x /home/runner/bin/repo
+          curl -s https://storage.googleapis.com/git-repo-downloads/repo \
+            > /home/runner/bin/repo
+          chmod +x /home/runner/bin/repo
           echo "/home/runner/bin" >> $GITHUB_PATH
           export PATH="/home/runner/bin:$PATH"
+          echo "repo version:"
           repo --version
 
-      - name: Set up Git identity
+      - name: Configure Git
         run: |
           git config --global user.name "OrangeFox Builder"
           git config --global user.email "builder@orangefox.tech"
@@ -107,56 +80,60 @@ jobs:
           git config --global http.lowSpeedLimit 0
           git config --global http.lowSpeedTime 999999
           git config --global core.compression 0
-          git config --global url."https://".insteadOf git://
 
-      - name: Set up CCache
+      - name: Setup CCache
         run: |
-          export PATH="/home/runner/bin:$PATH"
           ccache -M 10G
           ccache -o compression=true
-          ccache -o compression_level=1
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           echo "USE_CCACHE=1" >> $GITHUB_ENV
           echo "CCACHE_EXEC=/usr/bin/ccache" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
 
       - name: Cache CCache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
           key: ccache-ruby-${{ github.sha }}
-          restore-keys: |
-            ccache-ruby-
+          restore-keys: ccache-ruby-
 
-      - name: Sync OrangeFox Source
+      - name: Sync OrangeFox Sources
         run: |
           export PATH="/home/runner/bin:$PATH"
+          echo "repo version:"
+          repo --version
+          echo "Disk space before sync:"
+          df -h
           mkdir -p $GITHUB_WORKSPACE/workspace
           cd $GITHUB_WORKSPACE/workspace
+          echo "Cloning sync script..."
           git clone https://gitlab.com/OrangeFox/sync.git --depth 1
+          echo "Running sync script..."
           cd sync
           chmod +x orangefox_sync.sh
-          ./orangefox_sync.sh \
+          bash orangefox_sync.sh \
             --branch ${{ github.event.inputs.ORANGEFOX_BRANCH }} \
             --path $GITHUB_WORKSPACE/workspace
+          echo "Sync complete!"
+          echo "Disk space after sync:"
+          df -h
         timeout-minutes: 90
 
       - name: Clone Device Tree
         run: |
           export PATH="/home/runner/bin:$PATH"
           cd $GITHUB_WORKSPACE/workspace
+          echo "Cloning device tree..."
           git clone ${{ github.event.inputs.DEVICE_TREE }} \
             -b ${{ github.event.inputs.DEVICE_TREE_BRANCH }} \
             --depth 1 \
             device/xiaomi/${{ github.event.inputs.DEVICE_NAME }}
-          echo "Device tree contents:"
+          echo "Device tree files:"
           ls device/xiaomi/${{ github.event.inputs.DEVICE_NAME }}
 
       - name: Build OrangeFox
         run: |
           export PATH="/home/runner/bin:$PATH"
           cd $GITHUB_WORKSPACE/workspace
-          /bin/bash << 'EOF'
-          export PATH="/home/runner/bin:$PATH"
           export ALLOW_MISSING_DEPENDENCIES=true
           export FOX_BUILD_DEVICE=${{ github.event.inputs.DEVICE_NAME }}
           export LC_ALL="C"
@@ -169,18 +146,31 @@ jobs:
           export OF_DEFAULT_KEYMASTER_VERSION=4.1
           export FOX_BUILD_USER="Arush"
           export FOX_MAINTAINER="Arush"
+          echo "Sourcing build environment..."
           source build/envsetup.sh
-          lunch fox_${{ github.event.inputs.DEVICE_NAME }}-eng
-          mka adbd ${{ github.event.inputs.BUILD_TARGET }} -j$(nproc --all) 2>&1 | tee build.log
-          EOF
+          echo "Running lunch..."
+          lunch twrp_${{ github.event.inputs.DEVICE_NAME }}-eng
+          echo "Starting build..."
+          mka adbd ${{ github.event.inputs.BUILD_TARGET }} \
+            -j$(nproc --all) 2>&1 | tee $GITHUB_WORKSPACE/workspace/build.log
         timeout-minutes: 180
 
-      - name: Upload Build Log (Always)
+      - name: Check Build Output
+        if: always()
+        run: |
+          echo "=== Build Output Files ==="
+          find $GITHUB_WORKSPACE/workspace/out/target/product/ \
+            -name "*.img" -o -name "*.zip" 2>/dev/null || echo "No output files found"
+          echo "=== Disk Usage ==="
+          df -h
+
+      - name: Upload Build Log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log-${{ github.run_number }}
           path: ${{ github.workspace }}/workspace/build.log
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Upload OrangeFox Image
