@@ -1,0 +1,17 @@
+# Crypto
+ro.crypto.volume.filenames_mode=aes-256-cts
+ro.crypto.allow_encrypt_override=true
+
+# Keymaster
+ro.hardware.keystore=beanpod
+ro.hardware.gatekeeper=beanpod
+
+# Display
+ro.sf.lcd_density=395
+
+# USB
+persist.vendor.usb.config=mtp,adb
+
+# HyperOS
+ro.miui.ui.version.name=HyperOS
+ro.product.mod_device=ruby_global

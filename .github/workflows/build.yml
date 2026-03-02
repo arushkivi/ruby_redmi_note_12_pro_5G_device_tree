@@ -71,16 +71,21 @@ jobs:
           # Force Python 2 for older AOSP scripts
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
-          # Install repo tool
-          mkdir -p ~/.local/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.local/bin/repo
-          chmod a+x ~/.local/bin/repo
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/bin:$PATH"
+      - name: Install repo tool
+        run: |
+          mkdir -p /home/runner/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > /home/runner/bin/repo
+          chmod a+x /home/runner/bin/repo
+          echo "/home/runner/bin" >> $GITHUB_PATH
+
+      - name: Verify repo
+        run: |
+          export PATH="/home/runner/bin:$PATH"
           repo --version
 
       - name: Sync OrangeFox Source (Shallow Clone)
         run: |
+          export PATH="/home/runner/bin:$PATH"
           # Set up Git identity (required for repo init in CI)
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
@@ -129,8 +134,7 @@ jobs:
             export OF_DEFAULT_KEYMASTER_VERSION=4.1
             
             source build/envsetup.sh
-            lunch twrp_${{ inputs.DEVICE_NAME }}-eng
-            mka adbd ${{ inputs.BUILD_TARGET }}
+            lunch fox_${{ inputs.DEVICE_NAME }}-eng && mka adbd ${{ inputs.BUILD_TARGET }}
           ) 2>&1 | tee build.log
 
       - name: Upload Build Log (Always)

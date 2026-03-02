@@ -1,0 +1,4 @@
+ro.vendor.build.security_patch=2127-12-31
+ro.boot.flash.locked=1
+ro.boot.verifiedbootstate=green
+ro.vendor.mtk_platform=MT6877V

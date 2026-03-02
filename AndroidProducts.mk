@@ -3,8 +3,11 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/device.mk
+    $(LOCAL_DIR)/fox_ruby.mk \
+    $(LOCAL_DIR)/twrp.mk
 
 COMMON_LUNCH_CHOICES := \
+    fox_ruby-eng \
+    fox_ruby-userdebug \
     twrp_ruby-eng \
     twrp_ruby-userdebug
