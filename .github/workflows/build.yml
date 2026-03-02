@@ -81,6 +81,11 @@ jobs:
           mkdir -p workspace
           cd workspace
 
+          # Set up Git identity (required for repo init in CI)
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git config --global color.ui true
+
           # Using depth=1 is crucial for GitHub actions to save time & disk space
           ~/bin/repo init --depth=1 -u https://gitlab.com/OrangeFox/Manifest.git -b ${{ inputs.ORANGEFOX_BRANCH }}
 
