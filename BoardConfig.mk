@@ -47,7 +47,7 @@ BOARD_USES_METADATA_PARTITION := true
 # Dynamic Partitions
 BOARD_SUPER_PARTITION_SIZE := 9126805504
 BOARD_SUPER_PARTITION_GROUPS := miui_dynamic_partitions
-BOARD_MIUI_DYNAMIC_PARTITIONS_PARTITION_LIST := system system_ext product vendor mi_ext
+BOARD_MIUI_DYNAMIC_PARTITIONS_PARTITION_LIST := system system_ext product vendor
 BOARD_MIUI_DYNAMIC_PARTITIONS_SIZE := 9122611200
 
 # Virtual A/B
@@ -95,4 +95,4 @@ TW_MAX_BRIGHTNESS := 2047
 TW_DEFAULT_BRIGHTNESS := 1200
 TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
 TW_HAS_USB_STORAGE := true
-TW_INCLUDE_LOGICAL := system system_ext product vendor mi_ext
+TW_INCLUDE_LOGICAL := system system_ext product vendor
