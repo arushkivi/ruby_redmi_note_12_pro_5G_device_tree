@@ -204,6 +204,7 @@ jobs:
           echo "========================================="
           echo "STEP 9: Starting build"
           echo "========================================="
+          mkdir -p $GITHUB_WORKSPACE/workspace/out/target/product/${{ github.event.inputs.DEVICE_NAME }}/root
           mka adbd ${{ github.event.inputs.BUILD_TARGET }} \
             -j$(nproc --all) 2>&1 | tee $GITHUB_WORKSPACE/workspace/build.log
         timeout-minutes: 180
