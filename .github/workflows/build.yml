@@ -77,6 +77,8 @@ jobs:
           git config --global user.email "builder@orangefox.tech"
           git config --global advice.detachedHead false
           git config --global color.ui false
+          git config --global core.askpass true
+          git config --global url."https://".insteadOf git://
           git config --global http.postBuffer 524288000
           git config --global http.lowSpeedLimit 0
           git config --global http.lowSpeedTime 999999
@@ -100,6 +102,8 @@ jobs:
           chmod +x orangefox_sync.sh
           sed -i 's/repo sync;/repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all);/g' orangefox_sync.sh
           echo "Starting OrangeFox sync - this takes 30-60 mins..."
+          export GIT_TERMINAL_PROMPT=0
+          export REPO_INTERACTIVE=0
           yes | bash orangefox_sync.sh \
             --branch ${{ github.event.inputs.ORANGEFOX_BRANCH }} \
             --path $GITHUB_WORKSPACE/workspace
