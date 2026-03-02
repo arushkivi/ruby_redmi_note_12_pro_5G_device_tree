@@ -18,7 +18,7 @@ on:
       ORANGEFOX_BRANCH:
         description: "OrangeFox Branch"
         required: true
-        default: "fox_12.1"
+        default: "12.1"
       BUILD_TARGET:
         description: "Build Target"
         required: true
