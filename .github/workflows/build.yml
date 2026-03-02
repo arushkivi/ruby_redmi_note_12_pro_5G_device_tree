@@ -71,10 +71,13 @@ jobs:
           # Force Python 2 for older AOSP scripts
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
-          # Install Repo tool
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
+          # Install repo tool
+          mkdir -p ~/.local/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.local/bin/repo
+          chmod a+x ~/.local/bin/repo
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          repo --version
 
       - name: Sync OrangeFox Source (Shallow Clone)
         run: |
