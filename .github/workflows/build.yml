@@ -99,7 +99,7 @@ jobs:
           cd sync
           chmod +x orangefox_sync.sh
           echo "Starting OrangeFox sync - this takes 30-60 mins..."
-          bash orangefox_sync.sh \
+          yes | bash orangefox_sync.sh \
             --branch ${{ github.event.inputs.ORANGEFOX_BRANCH }} \
             --path $GITHUB_WORKSPACE/workspace
           echo "Verifying sync..."
