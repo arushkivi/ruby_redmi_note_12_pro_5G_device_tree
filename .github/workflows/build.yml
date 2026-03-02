@@ -77,8 +77,6 @@ jobs:
           git config --global user.email "builder@orangefox.tech"
           git config --global advice.detachedHead false
           git config --global color.ui false
-          git config --global core.askpass true
-          git config --global url."https://".insteadOf git://
           git config --global http.postBuffer 524288000
           git config --global http.lowSpeedLimit 0
           git config --global http.lowSpeedTime 999999
@@ -88,16 +86,25 @@ jobs:
         run: |
           set -e
           export PATH="/home/runner/bin:$PATH"
+          echo "repo version:"
+          repo --version
           echo "Disk space before sync:"
           df -h
           mkdir -p $GITHUB_WORKSPACE/workspace
           cd $GITHUB_WORKSPACE/workspace
-          echo "Starting Native repo init..."
-          repo init --depth=1 -u https://gitlab.com/OrangeFox/manifest.git -b ${{ github.event.inputs.ORANGEFOX_BRANCH }}
-          echo "Starting Native repo sync - this takes 30-60 mins..."
-          repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+          echo "Cloning sync script..."
+          git clone https://gitlab.com/OrangeFox/sync.git
+          echo "Sync script cloned!"
+          ls sync/
+          cd sync
+          chmod +x orangefox_sync.sh
+          echo "Starting OrangeFox sync - this takes 30-60 mins..."
+          bash orangefox_sync.sh \
+            --branch ${{ github.event.inputs.ORANGEFOX_BRANCH }} \
+            --path $GITHUB_WORKSPACE/workspace
           echo "Verifying sync..."
           ls $GITHUB_WORKSPACE/workspace
+          ls $GITHUB_WORKSPACE/workspace/build/
           echo "Sync complete and verified!"
         timeout-minutes: 90
 
