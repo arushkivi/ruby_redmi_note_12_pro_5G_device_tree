@@ -78,17 +78,19 @@ jobs:
 
       - name: Sync OrangeFox Source (Shallow Clone)
         run: |
-          mkdir -p workspace
-          cd workspace
-
           # Set up Git identity (required for repo init in CI)
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git config --global color.ui true
 
-          # Using depth=1 is crucial for GitHub actions to save time & disk space
-          ~/bin/repo init --depth=1 -u https://gitlab.com/OrangeFox/Manifest.git -b ${{ inputs.ORANGEFOX_BRANCH }}
+          # Clone official sync script
+          git clone https://gitlab.com/OrangeFox/sync.git
+          cd sync
 
+          # Execute the official sync script
+          ./orangefox_sync.sh --branch 12.1 --path $GITHUB_WORKSPACE/workspace
+
+          cd $GITHUB_WORKSPACE/workspace
           # Sync with highest parallelization
           ~/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
