@@ -76,6 +76,7 @@ jobs:
           git config --global user.name "OrangeFox Builder"
           git config --global user.email "builder@orangefox.tech"
           git config --global advice.detachedHead false
+          git config --global color.ui false
           git config --global http.postBuffer 524288000
           git config --global http.lowSpeedLimit 0
           git config --global http.lowSpeedTime 999999
