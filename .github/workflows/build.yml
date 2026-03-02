@@ -169,7 +169,7 @@ jobs:
           export FOX_BUILD_USER="Arush"
           export FOX_MAINTAINER="Arush"
           source build/envsetup.sh
-          lunch twrp_${{ github.event.inputs.DEVICE_NAME }}-eng && \
+          lunch twrp_ruby-eng && \
           mka adbd ${{ github.event.inputs.BUILD_TARGET }} \
             -j$(nproc --all) 2>&1 | tee $GITHUB_WORKSPACE/workspace/build.log
         timeout-minutes: 180
