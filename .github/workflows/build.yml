@@ -88,28 +88,16 @@ jobs:
         run: |
           set -e
           export PATH="/home/runner/bin:$PATH"
-          echo "repo version:"
-          repo --version
           echo "Disk space before sync:"
           df -h
           mkdir -p $GITHUB_WORKSPACE/workspace
           cd $GITHUB_WORKSPACE/workspace
-          echo "Cloning sync script..."
-          git clone https://gitlab.com/OrangeFox/sync.git
-          echo "Sync script cloned!"
-          ls sync/
-          cd sync
-          chmod +x orangefox_sync.sh
-          sed -i 's/repo sync;/repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all);/g' orangefox_sync.sh
-          echo "Starting OrangeFox sync - this takes 30-60 mins..."
-          export GIT_TERMINAL_PROMPT=0
-          export REPO_INTERACTIVE=0
-          yes | bash orangefox_sync.sh \
-            --branch ${{ github.event.inputs.ORANGEFOX_BRANCH }} \
-            --path $GITHUB_WORKSPACE/workspace
+          echo "Starting Native repo init..."
+          repo init --depth=1 -u https://gitlab.com/OrangeFox/manifest.git -b ${{ github.event.inputs.ORANGEFOX_BRANCH }}
+          echo "Starting Native repo sync - this takes 30-60 mins..."
+          repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
           echo "Verifying sync..."
           ls $GITHUB_WORKSPACE/workspace
-          ls $GITHUB_WORKSPACE/workspace/build/
           echo "Sync complete and verified!"
         timeout-minutes: 90
 
