@@ -83,16 +83,18 @@ jobs:
 
       - name: Setup CCache
         run: |
+          mkdir -p $GITHUB_WORKSPACE/ccache
+          export CCACHE_DIR=$GITHUB_WORKSPACE/ccache
           ccache -M 10G
           ccache -o compression=true
           echo "USE_CCACHE=1" >> $GITHUB_ENV
           echo "CCACHE_EXEC=/usr/bin/ccache" >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$GITHUB_WORKSPACE/ccache" >> $GITHUB_ENV
 
       - name: Cache CCache
         uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: ${{ github.workspace }}/ccache
           key: ccache-ruby-${{ github.sha }}
           restore-keys: ccache-ruby-
 
@@ -189,7 +191,7 @@ jobs:
           export LC_ALL="C"
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
-          export CCACHE_DIR=$HOME/.ccache
+          export CCACHE_DIR=$GITHUB_WORKSPACE/ccache
           export FOX_AB_DEVICE=1
           export FOX_VIRTUAL_AB_DEVICE=1
           export OF_PATCH_AVB20=1
