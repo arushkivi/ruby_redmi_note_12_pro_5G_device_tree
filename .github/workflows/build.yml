@@ -53,7 +53,7 @@ jobs:
             libncurses5 libncurses5-dev \
             libx11-dev lib32z1-dev libgl1-mesa-dev \
             libxml2-utils xsltproc unzip fontconfig \
-            python2 python-is-python2 \
+            python2 \
             libssl-dev bc lzop ccache \
             schedtool squashfs-tools lzma
           sudo ln -sf /usr/bin/python2 /usr/bin/python
