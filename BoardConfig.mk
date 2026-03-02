@@ -52,6 +52,7 @@ BOARD_MIUI_DYNAMIC_PARTITIONS_SIZE := 9122611200
 
 # Virtual A/B
 AB_OTA_UPDATER := true
+AB_OTA_PARTITIONS += boot system vendor product system_ext
 BOARD_USES_RECOVERY_AS_BOOT := true
 
 # Recovery
