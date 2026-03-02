@@ -148,13 +148,42 @@ jobs:
       - name: Build OrangeFox
         run: |
           export PATH="/home/runner/bin:$PATH"
-          # Verify we're in right place
-          echo "Current directory: $(pwd)"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          ls $GITHUB_WORKSPACE/workspace/
           cd $GITHUB_WORKSPACE/workspace
-          echo "Now in: $(pwd)"
-          test -f build/envsetup.sh && echo "✅ envsetup.sh exists" || exit 1
+
+          echo "========================================="
+          echo "STEP 1: Checking envsetup.sh"
+          echo "========================================="
+          test -f build/envsetup.sh && echo "✅ found" || exit 1
+
+          echo "========================================="
+          echo "STEP 2: Printing vendorsetup.sh contents"
+          echo "========================================="
+          cat device/xiaomi/ruby/vendorsetup.sh
+
+          echo "========================================="
+          echo "STEP 3: Printing AndroidProducts.mk"
+          echo "========================================="
+          cat device/xiaomi/ruby/AndroidProducts.mk
+
+          echo "========================================="
+          echo "STEP 4: Printing twrp_ruby.mk"
+          echo "========================================="
+          cat device/xiaomi/ruby/twrp_ruby.mk || echo "❌ twrp_ruby.mk NOT FOUND"
+
+          echo "========================================="
+          echo "STEP 5: Printing device.mk"
+          echo "========================================="
+          cat device/xiaomi/ruby/device.mk
+
+          echo "========================================="
+          echo "STEP 6: Printing BoardConfig.mk"
+          echo "========================================="
+          cat device/xiaomi/ruby/BoardConfig.mk
+
+          echo "========================================="
+          echo "STEP 7: Sourcing envsetup.sh"
+          echo "========================================="
+          set +e
           export ALLOW_MISSING_DEPENDENCIES=true
           export FOX_BUILD_DEVICE=${{ github.event.inputs.DEVICE_NAME }}
           export LC_ALL="C"
@@ -168,11 +197,30 @@ jobs:
           export FOX_BUILD_USER="Arush"
           export FOX_MAINTAINER="Arush"
           export FOX_MAINTAINER_PATCH_VERSION="1"
-          echo "Sourcing build environment..."
-          source build/envsetup.sh || true
-          echo "Running lunch..."
+          source build/envsetup.sh
+          ENVSETUP_RESULT=$?
+          echo "envsetup exit code: $ENVSETUP_RESULT"
+          set -e
+
+          echo "========================================="
+          echo "STEP 8: Running lunch"
+          echo "========================================="
+          set +e
           lunch twrp_ruby-eng
-          echo "Starting build..."
+          LUNCH_RESULT=$?
+          echo "lunch exit code: $LUNCH_RESULT"
+          set -e
+
+          if [ $LUNCH_RESULT -ne 0 ]; then
+            echo "❌ LUNCH FAILED - checking available targets:"
+            echo "Available lunch combos:"
+            lunch 2>&1 | head -50 || true
+            exit 1
+          fi
+
+          echo "========================================="
+          echo "STEP 9: Starting build"
+          echo "========================================="
           mka adbd ${{ github.event.inputs.BUILD_TARGET }} \
             -j$(nproc --all) 2>&1 | tee $GITHUB_WORKSPACE/workspace/build.log
         timeout-minutes: 180
