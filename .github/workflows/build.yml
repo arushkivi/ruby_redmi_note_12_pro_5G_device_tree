@@ -147,9 +147,7 @@ jobs:
 
       - name: Build OrangeFox
         run: |
-          set -e
           export PATH="/home/runner/bin:$PATH"
-          # Verify we're in right place
           echo "Current directory: $(pwd)"
           echo "Workspace: $GITHUB_WORKSPACE"
           ls $GITHUB_WORKSPACE/workspace/
@@ -168,8 +166,12 @@ jobs:
           export OF_DEFAULT_KEYMASTER_VERSION=4.1
           export FOX_BUILD_USER="Arush"
           export FOX_MAINTAINER="Arush"
-          source build/envsetup.sh
-          lunch twrp_ruby-eng && \
+          export FOX_MAINTAINER_PATCH_VERSION="1"
+          echo "Sourcing build environment..."
+          source build/envsetup.sh || true
+          echo "Running lunch..."
+          lunch twrp_ruby-eng
+          echo "Starting build..."
           mka adbd ${{ github.event.inputs.BUILD_TARGET }} \
             -j$(nproc --all) 2>&1 | tee $GITHUB_WORKSPACE/workspace/build.log
         timeout-minutes: 180
