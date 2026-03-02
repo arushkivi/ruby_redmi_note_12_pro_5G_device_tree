@@ -18,7 +18,8 @@ PRODUCT_PACKAGES += \
 # Copy recovery files
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/fstab.mt6877:$(TARGET_COPY_OUT_RECOVERY)/root/system/etc/fstab.mt6877 \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6877.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6877.rc
+    $(LOCAL_PATH)/recovery/root/init.recovery.mt6877.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6877.rc \
+    $(LOCAL_PATH)/recovery/root/fstab.mt6877:$(TARGET_COPY_OUT_RAMDISK)/fstab.mt6877
 
 # Soong namespaces
 PRODUCT_SOONG_NAMESPACES += \
